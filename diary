@@ -1,0 +1,32 @@
+#!/bin/sh
+
+DIARY_DIR="$XDG_DATA_HOME/diary"
+
+year="$(date '+%Y')"
+month="$(date '+%m')"
+day="$(date '+%d')"
+timestamp="---$(date '+%H:%M')---"
+dayfile="$DIARY_DIR/$year/$month/$day"
+
+mkdir -p "/tmp/diary" >/dev/null 2>&1
+
+if [ ! -f "$dayfile" ]; then
+    printf "%s\n\n\n" "$timestamp" > "/tmp/diary/original"
+else
+    cp "$dayfile" "/tmp/diary/original"
+
+    if grep -q "^$timestamp$" "$DIARY_DIR/$year/$month/$day"; then
+        printf "\n\n" >> "/tmp/diary/original"
+    else
+        printf "\n\n\n%s\n\n\n" "$timestamp" >> "/tmp/diary/original"
+    fi
+fi
+
+cp "/tmp/diary/original" "/tmp/diary/new"
+
+"$EDITOR" -c 'startinsert' + "/tmp/diary/new"
+
+if ! diff -q "/tmp/diary/original" "/tmp/diary/new" >/dev/null; then
+    mkdir -p "$DIARY_DIR/$year/$month" >/dev/null 2>&1
+    mv "/tmp/diary/new" "$dayfile"
+fi
