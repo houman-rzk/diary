@@ -1,0 +1,3 @@
+# diary
+
+A diary script.
